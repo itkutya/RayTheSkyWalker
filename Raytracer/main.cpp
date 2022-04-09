@@ -340,7 +340,7 @@ int main()
                 int drawStartX = -spriteWidth / 2 + spriteScreenX;
                 int drawEndX = spriteWidth / 2 + spriteScreenX;
 
-                for (size_t j = a * 48; j < 48; j++)
+                for (size_t j = a * 48; j < 48 * numSprites; j++)
                 {
                     if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
                     {
