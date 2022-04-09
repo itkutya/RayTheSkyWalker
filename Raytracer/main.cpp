@@ -29,7 +29,7 @@ int worldMap[mapWidth][mapHeight] =
   {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -43,6 +43,38 @@ int worldMap[mapWidth][mapHeight] =
   {1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
+
+struct Sprite
+{
+    double x;
+    double y;
+    int texture;
+};
+
+#define numSprites 1
+
+Sprite sprite[numSprites] =
+{
+  {20, 11, 10}
+};
+
+double ZBuffer[1440];
+int spriteOrder[numSprites];
+double spriteDistance[numSprites];
+void sortSprites(int* order, double* dist, int amount)
+{
+    std::vector<std::pair<double, int>> sprites(amount);
+    for (int i = 0; i < amount; i++) {
+        sprites[i].first = dist[i];
+        sprites[i].second = order[i];
+    }
+    std::sort(sprites.begin(), sprites.end());
+
+    for (int i = 0; i < amount; i++) {
+        dist[i] = sprites[amount - i - 1].first;
+        order[i] = sprites[amount - i - 1].second;
+    }
 };
 
 int main()
@@ -72,6 +104,8 @@ int main()
     sf::Clock deltaClock;
     sf::Color color;
     sf::Event event;
+
+    sf::VertexArray entity(sf::PrimitiveType::Lines, 32);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -250,6 +284,43 @@ int main()
             int mapNum = worldMap[mapX][mapY];
             walls[0].texCoords = sf::Vector2f(texX + (texWidth * mapNum + 0.5f), 0.f);
             walls[1].texCoords = sf::Vector2f(texX + (texWidth * mapNum + 0.5f), (float)texHeight);
+
+            ZBuffer[i] = perpWallDist;
+
+            for (int a = 0; a < numSprites; a++)
+            {
+                double spriteX = sprite[spriteOrder[a]].x - posX;
+                double spriteY = sprite[spriteOrder[a]].y - posY;
+                double invDet = 1.0 / (planeX * dirY - dirX * planeY);
+                double transformX = invDet * (dirY * spriteX - dirX * spriteY);
+                double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
+
+                int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
+
+                int spriteHeight = abs(int(screenHeight / (transformY - 50)));
+                int drawStartY = -spriteHeight / 2 + screenHeight / 2 * angle;
+                int drawEndY = spriteHeight / 2 + screenHeight / 2 * angle;
+
+                int spriteWidth = abs(int(screenHeight / (transformY)));
+                int drawStartX = -spriteWidth / 2 + spriteScreenX;
+                int drawEndX = spriteWidth / 2 + spriteScreenX;
+
+                for (size_t j = 0; j < 16; j++)
+                {
+                    if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
+                    {
+                        sf::Vertex* ent = &entity[j * 2];
+                        ent[0].position = sf::Vector2f(j + drawStartX, drawStartY);
+                        ent[1].position = sf::Vector2f(j + drawStartX, drawEndY);
+                    }
+                    else
+                    {
+                        sf::Vertex* ent = &entity[j * 2];
+                        ent[0].position = sf::Vector2f(0, 0);
+                        ent[1].position = sf::Vector2f(0, 0);
+                    }
+                }
+            }
         }
 
         //Fix here maybie
@@ -281,6 +352,7 @@ int main()
         window.setView(sf::View(visibleArea));
         window.draw(ground);
         window.draw(line, states);
+        window.draw(entity);
         window.setView(window.getDefaultView());
         window.draw(text);
         window.display();
