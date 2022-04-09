@@ -52,11 +52,14 @@ struct Sprite
     int texture;
 };
 
-#define numSprites 1
+#define numSprites 4
 
 Sprite sprite[numSprites] =
 {
-  {20, 11, 10}
+  {22, 11, 10},
+  {21, 12, 10},
+  {20, 13, 10},
+  {21, 10, 10}
 };
 
 double ZBuffer[1440];
@@ -105,7 +108,7 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    sf::VertexArray entity(sf::PrimitiveType::Lines, 32);
+    sf::VertexArray entity(sf::PrimitiveType::Lines, 2 * screenWidth * numSprites);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -139,6 +142,9 @@ int main()
 
     while (window.isOpen())
     {
+        float deltaTime = deltaClock.restart().asSeconds();
+        text.setString(std::to_string((int)1 / deltaTime) + " FPS");
+
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
@@ -152,9 +158,6 @@ int main()
                 line.resize(screenWidth * 2);
             }
         }
-
-        float deltaTime = deltaClock.restart().asSeconds();
-        text.setString(std::to_string((int)1 / deltaTime) + " FPS");
 
         float moveSpeed = deltaTime * 6.f;
         float sensitivity = deltaTime * 90.f;
@@ -183,6 +186,30 @@ int main()
             angle = std::clamp(angle, 0.f, 2.f);
 
             sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2), window);
+
+            //Fix here maybie
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            {
+                if (worldMap[(int)(posX + dirX * moveSpeed)][(int)(posY)] == 0) posX += dirX * moveSpeed;
+                if (worldMap[(int)(posX)][int(posY + dirY * moveSpeed)] == 0) posY += dirY * moveSpeed;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            {
+                if (worldMap[(int)(posX - dirX * moveSpeed)][(int)(posY)] == 0) posX -= dirX * moveSpeed;
+                if (worldMap[(int)(posX)][(int)(posY - dirY * moveSpeed)] == 0) posY -= dirY * moveSpeed;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            {
+                float oldDirX = dirX;
+                if (worldMap[(int)(posX - (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed)][(int)(posY)] == 0) posX -= (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed;
+                if (worldMap[(int)(posX)][(int)(posY - (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed)] == 0) posY -= (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            {
+                float oldDirX = dirX;
+                if (worldMap[(int)(posX + (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed)][(int)(posY)] == 0) posX += (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed;
+                if (worldMap[(int)(posX)][(int)(posY + (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed)] == 0) posY += (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed;
+            }
         }
 
         for (unsigned int i = 0; i < screenWidth; ++i)
@@ -287,6 +314,14 @@ int main()
 
             ZBuffer[i] = perpWallDist;
 
+            for (int l = 0; l < numSprites; l++)
+            {
+                spriteOrder[l] = l;
+                spriteDistance[l] = ((posX - sprite[l].x) * (posX - sprite[l].x) + (posY - sprite[l].y) * (posY - sprite[l].y));
+            }
+            //23%
+            sortSprites(spriteOrder, spriteDistance, numSprites);
+
             for (int a = 0; a < numSprites; a++)
             {
                 double spriteX = sprite[spriteOrder[a]].x - posX;
@@ -298,53 +333,31 @@ int main()
                 int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
 
                 int spriteHeight = abs(int(screenHeight / (transformY - 50)));
-                int drawStartY = -spriteHeight / 2 + screenHeight / 2 * angle;
-                int drawEndY = spriteHeight / 2 + screenHeight / 2 * angle;
+                int drawStartY = (int)(-spriteHeight / 2 + screenHeight / 2 * angle);
+                int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle);
 
                 int spriteWidth = abs(int(screenHeight / (transformY)));
                 int drawStartX = -spriteWidth / 2 + spriteScreenX;
                 int drawEndX = spriteWidth / 2 + spriteScreenX;
 
-                for (size_t j = 0; j < 16; j++)
+                for (size_t j = a * 48; j < 48; j++)
                 {
                     if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
                     {
+                        //20%
                         sf::Vertex* ent = &entity[j * 2];
                         ent[0].position = sf::Vector2f(j + drawStartX, drawStartY);
                         ent[1].position = sf::Vector2f(j + drawStartX, drawEndY);
                     }
                     else
                     {
+                        //12%
                         sf::Vertex* ent = &entity[j * 2];
                         ent[0].position = sf::Vector2f(0, 0);
                         ent[1].position = sf::Vector2f(0, 0);
                     }
                 }
             }
-        }
-
-        //Fix here maybie
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-        {
-            if (worldMap[(int)(posX + dirX * moveSpeed)][(int)(posY)] == 0) posX += dirX * moveSpeed;
-            if (worldMap[(int)(posX)][int(posY + dirY * moveSpeed)] == 0) posY += dirY * moveSpeed;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-        {
-            if (worldMap[(int)(posX - dirX * moveSpeed)][(int)(posY)] == 0) posX -= dirX * moveSpeed;
-            if (worldMap[(int)(posX)][(int)(posY - dirY * moveSpeed)] == 0) posY -= dirY * moveSpeed;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-        {
-            float oldDirX = dirX;
-            if (worldMap[(int)(posX - (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed)][(int)(posY)] == 0) posX -= (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed;
-            if (worldMap[(int)(posX)][(int)(posY - (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed)] == 0) posY -= (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-        {
-            float oldDirX = dirX;
-            if (worldMap[(int)(posX + (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed)][(int)(posY)] == 0) posX += (dirX * cos(PI / 2) - dirY * sin(PI / 2)) * moveSpeed;
-            if (worldMap[(int)(posX)][(int)(posY + (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed)] == 0) posY += (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed;
         }
 
         window.clear(sf::Color::Cyan);
