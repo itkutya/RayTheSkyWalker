@@ -47,8 +47,8 @@ int worldMap[mapWidth][mapHeight] =
 
 struct Sprite
 {
-    double x;
-    double y;
+    float x;
+    float y;
     int texture;
 };
 
@@ -82,8 +82,8 @@ void sortSprites(int* order, double* dist, int amount)
 
 int main()
 {
-    unsigned int screenWidth = 1440;
-    unsigned int screenHeight = 800;
+    int screenWidth = 1440;
+    int screenHeight = 800;
 
 	sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "Raycaster!");
     window.setFramerateLimit(60);
@@ -108,7 +108,7 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    sf::VertexArray entity(sf::PrimitiveType::Lines, 2 * screenWidth * numSprites);
+    sf::VertexArray entity(sf::PrimitiveType::Lines, texWidth * numSprites * 2);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -212,7 +212,7 @@ int main()
             }
         }
 
-        for (unsigned int i = 0; i < screenWidth; ++i)
+        for (int i = 0; i < screenWidth; ++i)
         {
             float cameraX = 2 * i / (float)screenWidth - 1;
             float rayDirX = dirX + planeX * cameraX;
@@ -272,14 +272,14 @@ int main()
             int drawEnd = (int)(lineHeight / 2 + screenHeight / 2 * angle);
 
             //10%
-            ground[0].position.x = 0;
+            ground[0].position.x = 0.f;
             ground[0].position.y = (float)screenHeight * (angle / 2.f);
-            ground[1].position.x = screenWidth;
+            ground[1].position.x = (float)screenWidth;
             ground[1].position.y = (float)screenHeight * (angle / 2.f);
-            ground[2].position.x = screenWidth;
-            ground[2].position.y = screenHeight;
-            ground[3].position.x = 0;
-            ground[3].position.y = screenHeight;
+            ground[2].position.x = (float)screenWidth;
+            ground[2].position.y = (float)screenHeight;
+            ground[3].position.x = 0.f;
+            ground[3].position.y = (float)screenHeight;
 
             /*switch (worldMap[mapX][mapY])
             {
@@ -326,37 +326,43 @@ int main()
 
         for (int a = 0; a < numSprites; a++)
         {
-            double spriteX = sprite[spriteOrder[a]].x - posX;
-            double spriteY = sprite[spriteOrder[a]].y - posY;
-            double invDet = 1.0 / (planeX * dirY - dirX * planeY);
-            double transformX = invDet * (dirY * spriteX - dirX * spriteY);
-            double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
+            float spriteX = sprite[spriteOrder[a]].x - posX;
+            float spriteY = sprite[spriteOrder[a]].y - posY;
+            float invDet = 1.f / (planeX * dirY - dirX * planeY);
+            float transformX = invDet * (dirY * spriteX - dirX * spriteY);
+            float transformY = invDet * (-planeY * spriteX + planeX * spriteY);
 
             int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
 
-            int spriteHeight = abs(int(screenHeight / (transformY - 50)));
+            #define uDiv 1
+            #define vDiv 2
+            #define vMove 0.0
+            int vMoveScreen = int(vMove / transformY);
+
+            int spriteHeight = abs(int(screenHeight / (transformY))) / vDiv;
             int drawStartY = (int)(-spriteHeight / 2 + screenHeight / 2 * angle);
             int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle);
 
-            int spriteWidth = abs(int(screenHeight / (transformY)));
+            //FIX
+            int spriteWidth = abs(int(screenHeight / (transformY))) / uDiv;
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
 
-            for (size_t j = a * 48; j < 48 * numSprites; j++)
+            for (int j = texWidth * a; j < texWidth * (a + 1); j++)
             {
                 if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
                 {
                     //20%
                     sf::Vertex* ent = &entity[j * 2];
-                    ent[0].position = sf::Vector2f(j + drawStartX, drawStartY);
-                    ent[1].position = sf::Vector2f(j + drawStartX, drawEndY);
+                    ent[0].position = sf::Vector2f((float)(j + drawStartX), (float)drawStartY);
+                    ent[1].position = sf::Vector2f((float)(j + drawStartX), (float)drawEndY);
                 }
                 else
                 {
                     //12%
                     sf::Vertex* ent = &entity[j * 2];
-                    ent[0].position = sf::Vector2f(0, 0);
-                    ent[1].position = sf::Vector2f(0, 0);
+                    ent[0].position = sf::Vector2f();
+                    ent[1].position = sf::Vector2f();
                 }
             }
         }
