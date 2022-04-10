@@ -108,7 +108,7 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    sf::VertexArray entity(sf::PrimitiveType::Lines, texWidth * numSprites * 2);
+    sf::VertexArray entity(sf::PrimitiveType::Lines, 9999/*texWidth * numSprites * 2*/);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -337,22 +337,26 @@ int main()
             int drawStartY = (int)(-spriteHeight / 2 + screenHeight / 2 * angle);
             int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle);
 
-            //FIX
+            //FIX THIS
             int spriteWidth = abs(int(screenHeight / (transformY))) / uDiv;
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
 
-            for (int j = texWidth * a; j < texWidth * (a + 1); j++)
+            for (int stripe = drawStartX; stripe < drawEndX; stripe++)
             {
-                if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
+                int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+                if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe])
                 {
-                    sf::Vertex* ent = &entity[j * 2];
-                    ent[0].position = sf::Vector2f((float)(j + drawStartX), (float)drawStartY);
-                    ent[1].position = sf::Vector2f((float)(j + drawStartX), (float)drawEndY);
+                    sf::Vertex* ent = &entity[stripe * 2];
+                    ent[0].position = sf::Vector2f((float)(stripe + texX), (float)drawStartY);
+                    ent[1].position = sf::Vector2f((float)(stripe + texX), (float)drawEndY);
+
+                    ent[0].color = sf::Color::Red;
+                    ent[1].color = sf::Color::Green;
                 }
                 else
                 {
-                    sf::Vertex* ent = &entity[j * 2];
+                    sf::Vertex* ent = &entity[stripe * 2];
                     ent[0].position = sf::Vector2f();
                     ent[1].position = sf::Vector2f();
                 }
@@ -372,7 +376,6 @@ int main()
 
 	return 0;
 }
-
 
 //Minimap
 /*    
