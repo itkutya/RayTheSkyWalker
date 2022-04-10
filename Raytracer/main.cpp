@@ -212,6 +212,11 @@ int main()
             }
         }
 
+        ground[0].position = sf::Vector2f(0.f, (float)screenHeight * (angle / 2.f));
+        ground[1].position = sf::Vector2f((float)screenWidth, (float)screenHeight * (angle / 2.f));
+        ground[2].position = sf::Vector2f((float)screenWidth, (float)screenHeight);
+        ground[3].position = sf::Vector2f(0.f, (float)screenHeight);
+
         for (int i = 0; i < screenWidth; ++i)
         {
             float cameraX = 2 * i / (float)screenWidth - 1;
@@ -271,16 +276,6 @@ int main()
             int drawStart = (int)(-lineHeight / 2 + screenHeight / 2 * angle);
             int drawEnd = (int)(lineHeight / 2 + screenHeight / 2 * angle);
 
-            //10%
-            ground[0].position.x = 0.f;
-            ground[0].position.y = (float)screenHeight * (angle / 2.f);
-            ground[1].position.x = (float)screenWidth;
-            ground[1].position.y = (float)screenHeight * (angle / 2.f);
-            ground[2].position.x = (float)screenWidth;
-            ground[2].position.y = (float)screenHeight;
-            ground[3].position.x = 0.f;
-            ground[3].position.y = (float)screenHeight;
-
             /*switch (worldMap[mapX][mapY])
             {
             case 1:  color = sf::Color::White;  break;
@@ -321,7 +316,6 @@ int main()
             spriteOrder[l] = l;
             spriteDistance[l] = ((posX - sprite[l].x) * (posX - sprite[l].x) + (posY - sprite[l].y) * (posY - sprite[l].y));
         }
-        //23%
         sortSprites(spriteOrder, spriteDistance, numSprites);
 
         for (int a = 0; a < numSprites; a++)
@@ -352,14 +346,12 @@ int main()
             {
                 if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
                 {
-                    //20%
                     sf::Vertex* ent = &entity[j * 2];
                     ent[0].position = sf::Vector2f((float)(j + drawStartX), (float)drawStartY);
                     ent[1].position = sf::Vector2f((float)(j + drawStartX), (float)drawEndY);
                 }
                 else
                 {
-                    //12%
                     sf::Vertex* ent = &entity[j * 2];
                     ent[0].position = sf::Vector2f();
                     ent[1].position = sf::Vector2f();
