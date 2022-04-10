@@ -221,6 +221,7 @@ int main()
             int mapX = int(posX);
             int mapY = int(posY);
 
+            //3%
             float deltaDistX = (rayDirX == 0) ? 1e30f : std::abs(1 / rayDirX);
             float deltaDistY = (rayDirY == 0) ? 1e30f : std::abs(1 / rayDirY);
 
@@ -270,6 +271,7 @@ int main()
             int drawStart = (int)(-lineHeight / 2 + screenHeight / 2 * angle);
             int drawEnd = (int)(lineHeight / 2 + screenHeight / 2 * angle);
 
+            //10%
             ground[0].position.x = 0;
             ground[0].position.y = (float)screenHeight * (angle / 2.f);
             ground[1].position.x = screenWidth;
@@ -291,7 +293,6 @@ int main()
 
             if (side == 1) { color.r = sf::Uint8(color.r / 1.5f); color.g = sf::Uint8(color.g / 1.5f); color.b = sf::Uint8(color.b / 1.5f); }
 
-            //Takes too long
             sf::Vertex* walls = &line[i * 2];
             walls[0].position = sf::Vector2f((float)i, (float)drawStart);
             walls[1].position = sf::Vector2f((float)i, (float)drawEnd);
@@ -313,49 +314,49 @@ int main()
             walls[1].texCoords = sf::Vector2f(texX + (texWidth * mapNum + 0.5f), (float)texHeight);
 
             ZBuffer[i] = perpWallDist;
+        }
 
-            for (int l = 0; l < numSprites; l++)
+        for (int l = 0; l < numSprites; l++)
+        {
+            spriteOrder[l] = l;
+            spriteDistance[l] = ((posX - sprite[l].x) * (posX - sprite[l].x) + (posY - sprite[l].y) * (posY - sprite[l].y));
+        }
+        //23%
+        sortSprites(spriteOrder, spriteDistance, numSprites);
+
+        for (int a = 0; a < numSprites; a++)
+        {
+            double spriteX = sprite[spriteOrder[a]].x - posX;
+            double spriteY = sprite[spriteOrder[a]].y - posY;
+            double invDet = 1.0 / (planeX * dirY - dirX * planeY);
+            double transformX = invDet * (dirY * spriteX - dirX * spriteY);
+            double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
+
+            int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
+
+            int spriteHeight = abs(int(screenHeight / (transformY - 50)));
+            int drawStartY = (int)(-spriteHeight / 2 + screenHeight / 2 * angle);
+            int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle);
+
+            int spriteWidth = abs(int(screenHeight / (transformY)));
+            int drawStartX = -spriteWidth / 2 + spriteScreenX;
+            int drawEndX = spriteWidth / 2 + spriteScreenX;
+
+            for (size_t j = a * 48; j < 48 * numSprites; j++)
             {
-                spriteOrder[l] = l;
-                spriteDistance[l] = ((posX - sprite[l].x) * (posX - sprite[l].x) + (posY - sprite[l].y) * (posY - sprite[l].y));
-            }
-            //23%
-            sortSprites(spriteOrder, spriteDistance, numSprites);
-
-            for (int a = 0; a < numSprites; a++)
-            {
-                double spriteX = sprite[spriteOrder[a]].x - posX;
-                double spriteY = sprite[spriteOrder[a]].y - posY;
-                double invDet = 1.0 / (planeX * dirY - dirX * planeY);
-                double transformX = invDet * (dirY * spriteX - dirX * spriteY);
-                double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
-
-                int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
-
-                int spriteHeight = abs(int(screenHeight / (transformY - 50)));
-                int drawStartY = (int)(-spriteHeight / 2 + screenHeight / 2 * angle);
-                int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle);
-
-                int spriteWidth = abs(int(screenHeight / (transformY)));
-                int drawStartX = -spriteWidth / 2 + spriteScreenX;
-                int drawEndX = spriteWidth / 2 + spriteScreenX;
-
-                for (size_t j = a * 48; j < 48 * numSprites; j++)
+                if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
                 {
-                    if (transformY > 0 && (drawStartX + j) > 0 && (drawStartX + j) < screenWidth && transformY < ZBuffer[(drawStartX + j)])
-                    {
-                        //20%
-                        sf::Vertex* ent = &entity[j * 2];
-                        ent[0].position = sf::Vector2f(j + drawStartX, drawStartY);
-                        ent[1].position = sf::Vector2f(j + drawStartX, drawEndY);
-                    }
-                    else
-                    {
-                        //12%
-                        sf::Vertex* ent = &entity[j * 2];
-                        ent[0].position = sf::Vector2f(0, 0);
-                        ent[1].position = sf::Vector2f(0, 0);
-                    }
+                    //20%
+                    sf::Vertex* ent = &entity[j * 2];
+                    ent[0].position = sf::Vector2f(j + drawStartX, drawStartY);
+                    ent[1].position = sf::Vector2f(j + drawStartX, drawEndY);
+                }
+                else
+                {
+                    //12%
+                    sf::Vertex* ent = &entity[j * 2];
+                    ent[0].position = sf::Vector2f(0, 0);
+                    ent[1].position = sf::Vector2f(0, 0);
                 }
             }
         }
