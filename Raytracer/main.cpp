@@ -56,10 +56,10 @@ struct Sprite
 
 Sprite sprite[numSprites] =
 {
-  {22, 11, 10},
-  {21, 12, 10},
-  {20, 13, 10},
-  {21, 10, 10}
+  {22, 11, 3},
+  {21, 12, 2},
+  {20, 13, 4},
+  {21, 10, 1}
 };
 
 double ZBuffer[1440];
@@ -289,8 +289,8 @@ int main()
             if (side == 1) { color.r = sf::Uint8(color.r / 1.5f); color.g = sf::Uint8(color.g / 1.5f); color.b = sf::Uint8(color.b / 1.5f); }
 
             sf::Vertex* walls = &line[i * 2];
-            walls[0].position = sf::Vector2f((float)i, (float)drawStart);
-            walls[1].position = sf::Vector2f((float)i, (float)drawEnd);
+            walls[0].position = sf::Vector2f((float)i + 1, (float)drawStart);
+            walls[1].position = sf::Vector2f((float)i + 1, (float)drawEnd);
 
             walls[0].color = color;
             walls[1].color = color;
@@ -353,12 +353,11 @@ int main()
                     ent[2].position = sf::Vector2f((float)(drawEndX), (float)drawEndY);
                     ent[3].position = sf::Vector2f((float)(drawStartX), (float)drawEndY);
 
-                    ent[0].color = sf::Color::Red;
-                    ent[1].color = sf::Color::Green;
-                    ent[2].color = sf::Color::Black;
-                    ent[3].color = sf::Color::Blue;
+                    ent[0].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture, 0.f);
+                    ent[1].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture + texWidth, 0.f);
+                    ent[2].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture + texWidth, (float)texHeight);
+                    ent[3].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture, (float)texHeight);
                 }
-                /*
                 else
                 {
                     sf::Vertex* ent = &entity[a * 4];
@@ -367,7 +366,6 @@ int main()
                     ent[2].position = sf::Vector2f();
                     ent[3].position = sf::Vector2f();
                 }
-                */
             }
         }
 
@@ -376,7 +374,7 @@ int main()
         window.setView(sf::View(visibleArea));
         window.draw(ground);
         window.draw(line, states);
-        window.draw(entity);
+        window.draw(entity, states);
         window.setView(window.getDefaultView());
         window.draw(text);
         window.display();
