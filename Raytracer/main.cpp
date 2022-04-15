@@ -108,7 +108,7 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    sf::VertexArray entity(sf::PrimitiveType::Lines, 9999/*texWidth * numSprites * 2*/);
+    sf::VertexArray entity(sf::PrimitiveType::Quads, numSprites * 4);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -328,38 +328,46 @@ int main()
 
             int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
 
-            #define uDiv 1
-            #define vDiv 2
-            #define vMove 0.0
+            #define uDiv 3
+            #define vDiv 3
+            #define vMove -50.f
             int vMoveScreen = int(vMove / transformY);
 
             int spriteHeight = abs(int(screenHeight / (transformY))) / vDiv;
-            int drawStartY = (int)(-spriteHeight / 2 + screenHeight / 2 * angle);
-            int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle);
+            int drawStartY = (int)(- spriteHeight / 2 + screenHeight / 2 * angle + vMoveScreen);
+            int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle + vMoveScreen);
 
-            //FIX THIS
+            
             int spriteWidth = abs(int(screenHeight / (transformY))) / uDiv;
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
 
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
             {
-                int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+                //FIX THIS
                 if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe])
                 {
-                    sf::Vertex* ent = &entity[stripe * 2];
-                    ent[0].position = sf::Vector2f((float)(stripe + texX), (float)drawStartY);
-                    ent[1].position = sf::Vector2f((float)(stripe + texX), (float)drawEndY);
+                    sf::Vertex* ent = &entity[a * 4];
+                    ent[0].position = sf::Vector2f((float)(drawStartX), (float)drawStartY);
+                    ent[1].position = sf::Vector2f((float)(drawEndX), (float)drawStartY);
+                    ent[2].position = sf::Vector2f((float)(drawEndX), (float)drawEndY);
+                    ent[3].position = sf::Vector2f((float)(drawStartX), (float)drawEndY);
 
                     ent[0].color = sf::Color::Red;
                     ent[1].color = sf::Color::Green;
+                    ent[2].color = sf::Color::Black;
+                    ent[3].color = sf::Color::Blue;
                 }
+                /*
                 else
                 {
-                    sf::Vertex* ent = &entity[stripe * 2];
+                    sf::Vertex* ent = &entity[a * 4];
                     ent[0].position = sf::Vector2f();
                     ent[1].position = sf::Vector2f();
+                    ent[2].position = sf::Vector2f();
+                    ent[3].position = sf::Vector2f();
                 }
+                */
             }
         }
 
