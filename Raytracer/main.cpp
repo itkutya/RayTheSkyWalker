@@ -328,9 +328,9 @@ int main()
 
             int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
 
-            #define uDiv 3
-            #define vDiv 3
-            #define vMove 250.f
+            #define uDiv 1.f
+            #define vDiv 1.f
+            #define vMove 0.f
             int vMoveScreen = int(vMove / transformY);
 
             int spriteHeight = abs(int(screenHeight / (transformY))) / vDiv;
@@ -347,10 +347,10 @@ int main()
             ent[2].position = sf::Vector2f();
             ent[3].position = sf::Vector2f();
 
-            ent[0].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture, 0.f);
-            ent[1].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture + texWidth, 0.f);
-            ent[2].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture + texWidth, (float)texHeight);
-            ent[3].texCoords = sf::Vector2f(texWidth * sprite[spriteOrder[a]].texture, (float)texHeight);
+            ent[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), 0.f);
+            ent[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), 0.f);
+            ent[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), (float)texHeight);
+            ent[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), (float)texHeight);
 
             //FIX THIS
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
