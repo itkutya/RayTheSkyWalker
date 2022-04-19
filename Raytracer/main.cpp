@@ -50,16 +50,19 @@ struct Sprite
     float x;
     float y;
     int texture;
+    float uDiv  = 1.f;
+    float vDiv  = 1.f;
+    float vMove = 0.f;
 };
 
 #define numSprites 4
 
 Sprite sprite[numSprites] =
 {
-  {22, 11, 3},
-  {21, 12, 2},
-  {20, 13, 4},
-  {21, 10, 1}
+  {22, 11, 3, 1.f, 1.f, 0.f},
+  {21, 12, 2, 1.5f, 1.5f, 300.f},
+  {20, 13, 4, 1.f, 2.f, -300.f},
+  {21, 10, 1, 1.f, 1.f, 0.f}
 };
 
 double ZBuffer[1440];
@@ -108,7 +111,7 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    sf::VertexArray entity(sf::PrimitiveType::Lines, 2 * 1440);
+    sf::VertexArray entity(sf::PrimitiveType::Lines, 2 * screenWidth * numSprites);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -311,7 +314,7 @@ int main()
             ZBuffer[i] = perpWallDist;
         }
 
-        for (int i = 0; i < entity.getVertexCount(); i++)
+        for (unsigned int i = 0; i < entity.getVertexCount(); i++)
         {
             entity[i].position = sf::Vector2f();
         }
@@ -333,16 +336,13 @@ int main()
 
             int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
 
-            #define uDiv 1.f
-            #define vDiv 1.f
-            #define vMove 0.f
-            int vMoveScreen = int(vMove / transformY);
+            int vMoveScreen = int(sprite[spriteOrder[a]].vMove / transformY);
 
-            int spriteHeight = abs(int(screenHeight / (transformY))) / vDiv;
+            int spriteHeight = abs((int)(screenHeight / (transformY) / sprite[spriteOrder[a]].vDiv));
             int drawStartY = (int)(- spriteHeight / 2 + screenHeight / 2 * angle + vMoveScreen);
             int drawEndY = (int)(spriteHeight / 2 + screenHeight / 2 * angle + vMoveScreen);
 
-            int spriteWidth = abs(int(screenHeight / (transformY))) / uDiv;
+            int spriteWidth = abs((int)(screenHeight / (transformY) / sprite[spriteOrder[a]].uDiv));
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
 
@@ -351,12 +351,12 @@ int main()
                 if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe - 1])
                 {
                     int texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth);
-                    sf::Vertex* ent = &entity[stripe * 2];
+                    sf::Vertex* ent = &entity[(a + 1) * stripe * 2];
                     ent[0].position = sf::Vector2f((float)(stripe), (float)drawStartY);
                     ent[1].position = sf::Vector2f((float)(stripe), (float)drawEndY);
 
-                    ent[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX), 0.f);
-                    ent[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX), texHeight);
+                    ent[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), 0.f);
+                    ent[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), texHeight);
                 }
             }
         }
