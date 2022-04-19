@@ -108,7 +108,7 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    sf::VertexArray entity(sf::PrimitiveType::Quads, 4 * numSprites);
+    sf::VertexArray entity(sf::PrimitiveType::Lines, 2 * 1440);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -311,6 +311,11 @@ int main()
             ZBuffer[i] = perpWallDist;
         }
 
+        for (int i = 0; i < entity.getVertexCount(); i++)
+        {
+            entity[i].position = sf::Vector2f();
+        }
+
         for (int l = 0; l < numSprites; l++)
         {
             spriteOrder[l] = l;
@@ -341,27 +346,17 @@ int main()
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
 
-            sf::Vertex* ent = &entity[a * 4];
-            ent[0].position = sf::Vector2f();
-            ent[1].position = sf::Vector2f();
-            ent[2].position = sf::Vector2f();
-            ent[3].position = sf::Vector2f();
-
-            ent[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), 0.f);
-            ent[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), 0.f);
-            ent[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), (float)texHeight);
-            ent[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), (float)texHeight);
-
-            //FIX THIS
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
             {
-                if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe])
+                if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe - 1])
                 {
-                    sf::Vertex* ent = &entity[a * 4];
-                    ent[0].position = sf::Vector2f((float)(drawStartX), (float)drawStartY);
-                    ent[1].position = sf::Vector2f((float)(drawEndX), (float)drawStartY);
-                    ent[2].position = sf::Vector2f((float)(drawEndX), (float)drawEndY);
-                    ent[3].position = sf::Vector2f((float)(drawStartX), (float)drawEndY);
+                    int texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth);
+                    sf::Vertex* ent = &entity[stripe * 2];
+                    ent[0].position = sf::Vector2f((float)(stripe), (float)drawStartY);
+                    ent[1].position = sf::Vector2f((float)(stripe), (float)drawEndY);
+
+                    ent[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX), 0.f);
+                    ent[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX), texHeight);
                 }
             }
         }
