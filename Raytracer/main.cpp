@@ -111,7 +111,13 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    sf::VertexArray entity(sf::PrimitiveType::Lines, 2 * screenWidth * numSprites);
+    //Out of range for bigger (window) stuff LOL, maybie sfml stuff? idk...
+    std::vector<sf::VertexArray> entity;
+    entity.reserve(numSprites);
+    for (int i = 0; i < numSprites; ++i)
+    {
+        entity.push_back(sf::VertexArray(sf::PrimitiveType::Lines, 2 * screenWidth));
+    }
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -159,6 +165,11 @@ int main()
                 screenWidth = event.size.width;
                 screenHeight = event.size.height;
                 line.resize(screenWidth * 2);
+                entity.clear();
+                for (int i = 0; i < numSprites; ++i)
+                {
+                    entity.push_back(sf::VertexArray(sf::PrimitiveType::Lines, 2 * screenWidth));
+                }
             }
         }
 
@@ -314,19 +325,23 @@ int main()
             ZBuffer[i] = perpWallDist;
         }
 
-        for (unsigned int i = 0; i < entity.getVertexCount(); i++)
+        //TO MUCH CPU!!!
+        for (unsigned int i = 0; i < entity.size(); ++i)
         {
-            entity[i].position = sf::Vector2f();
+            for (unsigned int j = 0; j < entity[i].getVertexCount(); ++j)
+            {
+                entity[i][j].position = sf::Vector2f();
+            }
         }
 
-        for (int l = 0; l < numSprites; l++)
+        for (int i = 0; i < numSprites; ++i)
         {
-            spriteOrder[l] = l;
-            spriteDistance[l] = ((posX - sprite[l].x) * (posX - sprite[l].x) + (posY - sprite[l].y) * (posY - sprite[l].y));
+            spriteOrder[i] = i;
+            spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y));
         }
         sortSprites(spriteOrder, spriteDistance, numSprites);
 
-        for (int a = 0; a < numSprites; a++)
+        for (int a = 0; a < numSprites; ++a)
         {
             float spriteX = sprite[spriteOrder[a]].x - posX;
             float spriteY = sprite[spriteOrder[a]].y - posY;
@@ -346,12 +361,12 @@ int main()
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
 
-            for (int stripe = drawStartX; stripe < drawEndX; stripe++)
+            for (int stripe = drawStartX; stripe < drawEndX; ++stripe)
             {
                 if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe - 1])
                 {
                     int texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth);
-                    sf::Vertex* ent = &entity[(a + 1) * stripe * 2];
+                    sf::Vertex* ent = &entity[a][stripe * 2];
                     ent[0].position = sf::Vector2f((float)(stripe), (float)drawStartY);
                     ent[1].position = sf::Vector2f((float)(stripe), (float)drawEndY);
 
@@ -366,7 +381,10 @@ int main()
         window.setView(sf::View(visibleArea));
         window.draw(ground);
         window.draw(line, states);
-        window.draw(entity, states);
+        for (auto&e : entity)
+        {
+            window.draw(e, states);
+        }
         window.setView(window.getDefaultView());
         window.draw(text);
         window.display();
