@@ -347,7 +347,7 @@ int main()
                 if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe - 1])
                 {
                     int texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth);
-                    entity.push_back(sf::VertexArray(sf::PrimitiveType::Lines, 2));
+                    entity.emplace_back(sf::PrimitiveType::Lines, 2);
                     entity[entity.size() - 1][0].position = sf::Vector2f((float)(stripe), (float)drawStartY);
                     entity[entity.size() - 1][1].position = sf::Vector2f((float)(stripe), (float)drawEndY);
 
