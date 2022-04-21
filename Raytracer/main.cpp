@@ -89,7 +89,7 @@ int main()
     std::vector<float> ZBuffer(screenWidth);
 
 	sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "Raycaster!");
-    window.setFramerateLimit(60);
+    //window.setFramerateLimit(60);
     //window.setVerticalSyncEnabled(true);
     //window.setMouseCursorVisible(false);
 
@@ -144,7 +144,7 @@ int main()
     while (window.isOpen())
     {
         float deltaTime = deltaClock.restart().asSeconds();
-        text.setString(std::to_string((int)1 / deltaTime) + " FPS");
+        text.setString(std::to_string((int)(1 / deltaTime)) + " FPS");
 
         while (window.pollEvent(event))
         {
@@ -188,7 +188,6 @@ int main()
 
             sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2), window);
 
-            //Fix here maybie
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
             {
                 if (worldMap[(int)(posX + dirX * moveSpeed)][(int)(posY)] == 0) posX += dirX * moveSpeed;
@@ -227,7 +226,6 @@ int main()
             int mapX = int(posX);
             int mapY = int(posY);
 
-            //3%
             float deltaDistX = (rayDirX == 0) ? 1e30f : std::abs(1 / rayDirX);
             float deltaDistY = (rayDirY == 0) ? 1e30f : std::abs(1 / rayDirY);
 
@@ -277,6 +275,7 @@ int main()
             int drawStart = (int)(-lineHeight / 2 + screenHeight / 2 * angle);
             int drawEnd = (int)(lineHeight / 2 + screenHeight / 2 * angle);
             
+            /*
             switch (worldMap[mapX][mapY])
             {
             case 1:  color = sf::Color::White;  break;
@@ -285,6 +284,7 @@ int main()
             case 4:  color = sf::Color::White;  break;
             default: color = sf::Color::White;  break;
             }
+            */
             color = sf::Color::White;
             
             if (side == 1) { color.r = sf::Uint8(color.r / 1.5f); color.g = sf::Uint8(color.g / 1.5f); color.b = sf::Uint8(color.b / 1.5f); }
@@ -313,7 +313,6 @@ int main()
         }
         
         entity.clear();
-        entity.shrink_to_fit();
 
         for (int i = 0; i < numSprites; ++i)
         {
