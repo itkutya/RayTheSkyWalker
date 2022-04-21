@@ -65,19 +65,18 @@ Sprite sprite[numSprites] =
   {21, 10, 1, 1.f, 1.f, 0.f}
 };
 
-double ZBuffer[1440];
 int spriteOrder[numSprites];
-double spriteDistance[numSprites];
-void sortSprites(int* order, double* dist, int amount)
+float spriteDistance[numSprites];
+void sortSprites(int* order, float* dist, int amount)
 {
-    std::vector<std::pair<double, int>> sprites(amount);
-    for (int i = 0; i < amount; i++) {
+    std::vector<std::pair<float, int>> sprites(amount);
+    for (int i = 0; i < amount; ++i) {
         sprites[i].first = dist[i];
         sprites[i].second = order[i];
     }
     std::sort(sprites.begin(), sprites.end());
 
-    for (int i = 0; i < amount; i++) {
+    for (int i = 0; i < amount; ++i) {
         dist[i] = sprites[amount - i - 1].first;
         order[i] = sprites[amount - i - 1].second;
     }
@@ -87,6 +86,7 @@ int main()
 {
     int screenWidth = 1440;
     int screenHeight = 800;
+    std::vector<float> ZBuffer(screenWidth);
 
 	sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "Raycaster!");
     window.setFramerateLimit(60);
@@ -111,13 +111,7 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    //Out of range for bigger (window) stuff LOL, maybie sfml stuff? idk...
     std::vector<sf::VertexArray> entity;
-    entity.reserve(numSprites);
-    for (int i = 0; i < numSprites; ++i)
-    {
-        entity.push_back(sf::VertexArray(sf::PrimitiveType::Lines, 2 * screenWidth));
-    }
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -140,9 +134,7 @@ int main()
 
     sf::Texture texture;
     if (!texture.loadFromFile("res/wolftextures.png"))
-    {
         return -1;
-    }
     texture.setRepeated(false);
     texture.setSmooth(true);
     texture.setSrgb(true);
@@ -165,14 +157,11 @@ int main()
                 screenWidth = event.size.width;
                 screenHeight = event.size.height;
                 line.resize(screenWidth * 2);
-                entity.clear();
-                for (int i = 0; i < numSprites; ++i)
-                {
-                    entity.push_back(sf::VertexArray(sf::PrimitiveType::Lines, 2 * screenWidth));
-                }
+                ZBuffer.resize(screenWidth);
+                ZBuffer.shrink_to_fit();
             }
         }
-
+        
         float moveSpeed = deltaTime * 6.f;
         float sensitivity = deltaTime * 90.f;
 
@@ -189,14 +178,12 @@ int main()
             planeY = oldPlaneX * sin(sensitivity * diff_X) + planeY * cos(sensitivity * diff_X);
 
             float diff_Y = (float)((screenHeight / 2) - (float)mousPos.y) / (float)screenHeight;
+
             if (diff_Y > 0.f)
-            {
                 angle += 1.f * sensitivity * diff_Y;
-            }
             else if (diff_Y < 0.f)
-            {
                 angle += 1.f * sensitivity * diff_Y;
-            }
+
             angle = std::clamp(angle, 0.f, 2.f);
 
             sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2), window);
@@ -225,12 +212,12 @@ int main()
                 if (worldMap[(int)(posX)][(int)(posY + (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed)] == 0) posY += (oldDirX * sin(PI / 2) + dirY * cos(PI / 2)) * moveSpeed;
             }
         }
-
+        
         ground[0].position = sf::Vector2f(0.f, (float)screenHeight * (angle / 2.f));
         ground[1].position = sf::Vector2f((float)screenWidth, (float)screenHeight * (angle / 2.f));
         ground[2].position = sf::Vector2f((float)screenWidth, (float)screenHeight);
         ground[3].position = sf::Vector2f(0.f, (float)screenHeight);
-
+        
         for (int i = 0; i < screenWidth; ++i)
         {
             float cameraX = 2 * i / (float)screenWidth - 1;
@@ -289,17 +276,17 @@ int main()
             int lineHeight = (int)(screenHeight / perpWallDist);
             int drawStart = (int)(-lineHeight / 2 + screenHeight / 2 * angle);
             int drawEnd = (int)(lineHeight / 2 + screenHeight / 2 * angle);
-
-            /*switch (worldMap[mapX][mapY])
+            
+            switch (worldMap[mapX][mapY])
             {
             case 1:  color = sf::Color::White;  break;
             case 2:  color = sf::Color::White;  break;
             case 3:  color = sf::Color::White;  break;
             case 4:  color = sf::Color::White;  break;
             default: color = sf::Color::White;  break;
-            }*/
+            }
             color = sf::Color::White;
-
+            
             if (side == 1) { color.r = sf::Uint8(color.r / 1.5f); color.g = sf::Uint8(color.g / 1.5f); color.b = sf::Uint8(color.b / 1.5f); }
 
             sf::Vertex* walls = &line[i * 2];
@@ -321,18 +308,12 @@ int main()
             int mapNum = worldMap[mapX][mapY];
             walls[0].texCoords = sf::Vector2f(texX + (texWidth * mapNum + 0.5f), 0.f);
             walls[1].texCoords = sf::Vector2f(texX + (texWidth * mapNum + 0.5f), (float)texHeight);
-
+            
             ZBuffer[i] = perpWallDist;
         }
-
-        //TO MUCH CPU!!!
-        for (unsigned int i = 0; i < entity.size(); ++i)
-        {
-            for (unsigned int j = 0; j < entity[i].getVertexCount(); ++j)
-            {
-                entity[i][j].position = sf::Vector2f();
-            }
-        }
+        
+        entity.clear();
+        entity.shrink_to_fit();
 
         for (int i = 0; i < numSprites; ++i)
         {
@@ -366,25 +347,23 @@ int main()
                 if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe - 1])
                 {
                     int texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth);
-                    sf::Vertex* ent = &entity[a][stripe * 2];
-                    ent[0].position = sf::Vector2f((float)(stripe), (float)drawStartY);
-                    ent[1].position = sf::Vector2f((float)(stripe), (float)drawEndY);
+                    entity.push_back(sf::VertexArray(sf::PrimitiveType::Lines, 2));
+                    entity[entity.size() - 1][0].position = sf::Vector2f((float)(stripe), (float)drawStartY);
+                    entity[entity.size() - 1][1].position = sf::Vector2f((float)(stripe), (float)drawEndY);
 
-                    ent[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), 0.f);
-                    ent[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), texHeight);
+                    entity[entity.size() - 1][0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), 0.f);
+                    entity[entity.size() - 1][1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), texHeight);
                 }
             }
         }
 
-        window.clear(sf::Color::Cyan);
         visibleArea = sf::FloatRect(0.f, 0.f, (float)screenWidth, (float)screenHeight);
+        window.clear(sf::Color::Cyan);
         window.setView(sf::View(visibleArea));
         window.draw(ground);
         window.draw(line, states);
         for (auto&e : entity)
-        {
             window.draw(e, states);
-        }
         window.setView(window.getDefaultView());
         window.draw(text);
         window.display();
