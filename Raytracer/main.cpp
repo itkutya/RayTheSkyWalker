@@ -390,20 +390,48 @@ int main()
             clear[2].position = sf::Vector2f();
             clear[3].position = sf::Vector2f();
 
-            float diff = (drawEndX - drawStartX) - (firstX - lastX) - 1.f;
+            float diff = (firstX - lastX + 1.f) / (drawEndX - drawStartX);
 
             if (transformY > 0 && firstX > 0 && lastX < screenWidth && transformY < ZBuffer[firstX] && transformY < ZBuffer[lastX])
             {
                 sf::Vertex* quad = &entity[a * 4];
-                quad[0].position = sf::Vector2f((float)firstX + 1.f, (float)drawStartY);
-                quad[1].position = sf::Vector2f((float)lastX - 1.f, (float)drawStartY);
-                quad[2].position = sf::Vector2f((float)lastX - 1.f, (float)drawEndY);
-                quad[3].position = sf::Vector2f((float)firstX + 1.f, (float)drawEndY);
+                quad[0].position = sf::Vector2f((float)lastX - 1.f, (float)drawStartY);
+                quad[1].position = sf::Vector2f((float)firstX + 1.f, (float)drawStartY);
+                quad[2].position = sf::Vector2f((float)firstX + 1.f, (float)drawEndY);
+                quad[3].position = sf::Vector2f((float)lastX - 1.f, (float)drawEndY);
 
-                quad[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture - texWidth * (drawStartX - lastX) / screenWidth), 0.f);
-                quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (drawEndX - firstX) / screenWidth), 0.f);
-                quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (drawEndX - firstX) / screenWidth), (float)texHeight);
-                quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture - texWidth * (drawStartX - lastX) / screenWidth), (float)texHeight);
+                if (firstX + 1 < drawEndX && lastX > drawStartX)
+                {
+                    quad[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth * (1 - diff)), 0.f);
+                    quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), 0.f);
+                    quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), (float)texHeight);
+                    quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth * (1 - diff)), (float)texHeight);
+                    std::cout << "a\n";
+                }
+                else if (lastX > drawStartX)
+                {
+                    quad[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth * (1 - diff)), 0.f);
+                    quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), 0.f);
+                    quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), (float)texHeight);
+                    quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth * (1 - diff)), (float)texHeight);
+                    std::cout << "b\n";
+                }
+                else if (firstX + 1 < drawEndX)
+                {
+                    quad[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), 0.f);
+                    quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), 0.f);
+                    quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), (float)texHeight);
+                    quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), (float)texHeight);
+                    std::cout << "c\n";
+                }
+                else
+                {
+                    quad[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), 0.f);
+                    quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), 0.f);
+                    quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), (float)texHeight);
+                    quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), (float)texHeight);
+                    std::cout << "d\n";
+                }
             }
         }
 
