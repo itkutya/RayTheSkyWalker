@@ -112,7 +112,8 @@ int main()
     sf::Color color;
     sf::Event event;
 
-    std::vector<sf::VertexArray> entity;
+    //std::vector<sf::VertexArray> entity;
+    sf::VertexArray entity(sf::PrimitiveType::Quads, numSprites * 4);
 
     sf::Vector2i mousPos;
     sf::Font font;
@@ -149,10 +150,12 @@ int main()
     sf::Sound sound;
     sound.setBuffer(buffer);
     sound.setPosition(sprite[0].x, 0.f, sprite[0].y);
-    sound.setMinDistance(1.f);
-    sound.setAttenuation(70.f);
+    sound.setMinDistance(0.5f);
+    sound.setAttenuation(10.f);
     sound.setRelativeToListener(false);
     sound.play();
+
+    sf::Listener::setGlobalVolume(100.f);
 
     while (window.isOpen())
     {
@@ -161,7 +164,6 @@ int main()
 
         sf::Listener::setPosition(posX, 0.f, posY);
         sf::Listener::setDirection(-dirX, 1.f, -dirY);
-        sf::Listener::setGlobalVolume(100.f * ( 1.f / std::abs(dirX + dirY)));
 
         while (window.pollEvent(event))
         {
@@ -329,7 +331,7 @@ int main()
             ZBuffer[i] = perpWallDist;
         }
         
-        entity.clear();
+        //entity.clear();
 
         for (int i = 0; i < numSprites; ++i)
         {
@@ -358,18 +360,50 @@ int main()
             int drawStartX = -spriteWidth / 2 + spriteScreenX;
             int drawEndX = spriteWidth / 2 + spriteScreenX;
 
+            int firstX = drawStartX;
+            int lastX = drawEndX;
+
             for (int stripe = drawStartX; stripe < drawEndX; ++stripe)
             {
-                if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe - 1])
+                if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe])
                 {
+                    if(firstX < stripe)
+                        firstX = stripe;
+                    if (lastX > stripe)
+                        lastX = stripe;
+                    /*
                     int texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth);
+                    
                     entity.emplace_back(sf::PrimitiveType::Lines, 2);
                     entity[entity.size() - 1][0].position = sf::Vector2f((float)(stripe), (float)drawStartY);
                     entity[entity.size() - 1][1].position = sf::Vector2f((float)(stripe), (float)drawEndY);
 
                     entity[entity.size() - 1][0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), 0.f);
                     entity[entity.size() - 1][1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texX + 0.5f), texHeight);
+                    */
                 }
+            }
+
+            sf::Vertex* clear = &entity[a * 4];
+            clear[0].position = sf::Vector2f();
+            clear[1].position = sf::Vector2f();
+            clear[2].position = sf::Vector2f();
+            clear[3].position = sf::Vector2f();
+
+            float diff = (drawEndX - drawStartX) - (firstX - lastX) - 1.f;
+
+            if (transformY > 0 && firstX > 0 && lastX < screenWidth && transformY < ZBuffer[firstX] && transformY < ZBuffer[lastX])
+            {
+                sf::Vertex* quad = &entity[a * 4];
+                quad[0].position = sf::Vector2f((float)firstX + 1.f, (float)drawStartY);
+                quad[1].position = sf::Vector2f((float)lastX - 1.f, (float)drawStartY);
+                quad[2].position = sf::Vector2f((float)lastX - 1.f, (float)drawEndY);
+                quad[3].position = sf::Vector2f((float)firstX + 1.f, (float)drawEndY);
+
+                quad[0].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture - texWidth * (drawStartX - lastX) / screenWidth), 0.f);
+                quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (drawEndX - firstX) / screenWidth), 0.f);
+                quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (drawEndX - firstX) / screenWidth), (float)texHeight);
+                quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture - texWidth * (drawStartX - lastX) / screenWidth), (float)texHeight);
             }
         }
 
@@ -378,13 +412,15 @@ int main()
         window.setView(sf::View(visibleArea));
         window.draw(ground);
         window.draw(line, states);
-        for (auto&e : entity)
-            window.draw(e, states);
+        //for (auto&e : entity)
+        //    window.draw(e, states);
+        window.draw(entity, states);
         window.setView(window.getDefaultView());
         window.draw(text);
         window.display();
     }
 
+    sound.stop();
 	return 0;
 }
 
