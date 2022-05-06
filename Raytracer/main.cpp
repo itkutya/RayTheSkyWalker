@@ -7,6 +7,7 @@
 #include <array>
 
 #include "SFML/Graphics.hpp"
+#include "SFML/Audio.hpp"
 
 #define mapWidth 24
 #define mapHeight 24
@@ -59,7 +60,7 @@ struct Sprite
 
 Sprite sprite[numSprites] =
 {
-  {22, 11, 3, 1.f, 1.f, 0.f},
+  {12, 15, 3, 1.f, 1.f, 0.f},
   {21, 12, 2, 1.5f, 1.5f, 300.f},
   {20, 13, 4, 1.f, 2.f, -300.f},
   {21, 10, 1, 1.f, 1.f, 0.f}
@@ -88,8 +89,8 @@ int main()
     int screenHeight = 800;
     std::vector<float> ZBuffer(screenWidth);
 
-	sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "Raycaster!");
-    //window.setFramerateLimit(60);
+    sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "Raycaster!");
+    window.setFramerateLimit(60);
     //window.setVerticalSyncEnabled(true);
     //window.setMouseCursorVisible(false);
 
@@ -141,10 +142,26 @@ int main()
     sf::RenderStates states;
     states.texture = &texture;
 
+    sf::SoundBuffer buffer;
+    if (!buffer.loadFromFile("res/song.ogg"))
+        return -1;
+
+    sf::Sound sound;
+    sound.setBuffer(buffer);
+    sound.setPosition(sprite[0].x, 0.f, sprite[0].y);
+    sound.setMinDistance(1.f);
+    sound.setAttenuation(70.f);
+    sound.setRelativeToListener(false);
+    sound.play();
+
     while (window.isOpen())
     {
         float deltaTime = deltaClock.restart().asSeconds();
         text.setString(std::to_string((int)(1 / deltaTime)) + " FPS");
+
+        sf::Listener::setPosition(posX, 0.f, posY);
+        sf::Listener::setDirection(-dirX, 1.f, -dirY);
+        sf::Listener::setGlobalVolume(100.f * ( 1.f / std::abs(dirX + dirY)));
 
         while (window.pollEvent(event))
         {
