@@ -406,7 +406,7 @@ int main()
                     quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), 0.f);
                     quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), (float)texHeight);
                     quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth * (1 - diff)), (float)texHeight);
-                    std::cout << "a\n";
+                    //std::cout << "a\n";
                 }
                 else if (lastX > drawStartX)
                 {
@@ -414,7 +414,7 @@ int main()
                     quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), 0.f);
                     quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), (float)texHeight);
                     quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth * (1 - diff)), (float)texHeight);
-                    std::cout << "b\n";
+                    //std::cout << "b\n";
                 }
                 else if (firstX + 1 < drawEndX)
                 {
@@ -422,7 +422,7 @@ int main()
                     quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), 0.f);
                     quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth - texWidth * (1 - diff)), (float)texHeight);
                     quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), (float)texHeight);
-                    std::cout << "c\n";
+                    //std::cout << "c\n";
                 }
                 else
                 {
@@ -430,7 +430,7 @@ int main()
                     quad[1].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), 0.f);
                     quad[2].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture + texWidth), (float)texHeight);
                     quad[3].texCoords = sf::Vector2f((float)(texWidth * sprite[spriteOrder[a]].texture), (float)texHeight);
-                    std::cout << "d\n";
+                    //std::cout << "d\n";
                 }
             }
         }
