@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <stdlib.h>
 #include <math.h>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <memory>
@@ -61,7 +62,7 @@ struct Sprite
 Sprite sprite[numSprites] =
 {
   {12, 15, 3, 1.f, 1.f, 0.f},
-  {21, 12, 2, 1.5f, 1.5f, 300.f},
+  {21, 12, 5, 1.5f, 1.5f, 300.f},
   {20, 13, 4, 1.f, 2.f, -300.f},
   {21, 10, 1, 1.f, 1.f, 0.f}
 };
@@ -304,7 +305,9 @@ int main()
             default: color = sf::Color::White;  break;
             }
             */
-            color = sf::Color::White;
+            color = sf::Color(255 - (int)(perpWallDist * 5 > 255 ? 255 : perpWallDist * 5),
+                              255 - (int)(perpWallDist * 5 > 255 ? 255 : perpWallDist * 5),
+                              255 - (int)(perpWallDist * 5 > 255 ? 255 : perpWallDist * 5), 255);
             
             if (side == 1) { color.r = sf::Uint8(color.r / 1.5f); color.g = sf::Uint8(color.g / 1.5f); color.b = sf::Uint8(color.b / 1.5f); }
 
@@ -399,6 +402,19 @@ int main()
                 quad[1].position = sf::Vector2f((float)firstX + 1.f, (float)drawStartY);
                 quad[2].position = sf::Vector2f((float)firstX + 1.f, (float)drawEndY);
                 quad[3].position = sf::Vector2f((float)lastX - 1.f, (float)drawEndY);
+
+                quad[0].color = sf::Color(255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5), 255);
+                quad[1].color = sf::Color(255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5), 255);
+                quad[2].color = sf::Color(255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5), 255);
+                quad[3].color = sf::Color(255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5),
+                                          255 - (int)((std::hypot(spriteX, spriteY) * 5) > 255 ? 255 : std::hypot(spriteX, spriteY) * 5), 255);
 
                 if (firstX + 1 < drawEndX && lastX > drawStartX)
                 {
